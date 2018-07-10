@@ -1,0 +1,13 @@
+* Purpose
+  I want to write my own special minor mode for working with tex files.
+* Contents
+** Key bindings
+   Some keys that I am used to.
+** Moving around
+   Try to make navigating tex files become easier and easier.
+** Management
+   Manage the file structure better, maybe some AST.
+* Plan
+** Structure
+   So the first question is the structure to use, as this offers the background for the
+   possibilities and capabilities of this package, say.

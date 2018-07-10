@@ -1,0 +1,3 @@
+[submodule "my_packages/robot"]
+	path = my_packages/robot
+	url = ./my_packages/robot/

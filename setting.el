@@ -177,7 +177,7 @@ Leave point after open-quotation."
   "retrieve value from property drawer"
   (org-element-map (org-element-parse-buffer) 'property-drawer (lambda (hl)
 								 (nth 3 (nth 1 (assoc 'node-property hl))))))
-(set-face-attribute 'org-block nil :background "lightblue" :foreground "black")
+(set-face-attribute 'org-block nil :background "black" :foreground "orange")
 
 (toggle-truncate-lines -1)
 (global-set-key (kbd "C-c h") 'beginning-of-buffer)
@@ -231,6 +231,14 @@ Leave point after open-quotation."
 (global-set-key [?\C-x ?r ?s] 'bookmark-save)
 (global-set-key [?\M-Z] 'zap-up-to-char)
 (setq flyspell-issue-message-flag nil)
+(defun ask-before-quit-advice (orig-func &rest args)
+  (let ((answer (read-char-choice "Do you really want to quit?" '(?y ?n))))
+    (if (char-equal answer ?y)
+	(apply orig-func args)
+      (message "You're welcomed!"))))
+
+(advice-add 'save-buffers-kill-terminal :around 'ask-before-quit-advice)
+(setq initial-frame-alist '((width . 118)))
 
 ;; (load-theme 'leuven)
 ;; (load-theme 'nimbus t)
@@ -407,17 +415,20 @@ Leave point after open-quotation."
 (fset 'na
    [?c ?\C-x ?u ?\C-c ?g ?\C-c ?\C-p ?\C-c ?\C-x ?\M-w ?\C-c ?g ?\C-c ?\C-x ?\C-y tab ?\M-m ?< S-right ?\C-n ?\C-n ?\C-n ?\C-n ?\M-m ?< S-right ?\C-n ?\C-n ?\M-p ?< S-right ?\C-n ?\C-n ?\C-n ?\C-n ?\C-n tab ?l ?u ?n ?c ?h tab ?0 tab ?t ?o ?  ?d ?o tab])
 
-(ivy-mode 1)
-(counsel-mode 1)
-(setq ivy-use-virtual-buffers t)
-(global-set-key [?\s-s] 'swiper)
-(setq ivy-count-format "(%d/%d) ")
-(global-set-key [?\s-f] 'counsel-find-file)
-(global-set-key [?\M-x] 'counsel-M-x)
+(use-package counsel
+  :ensure t
+  :config
+  (ivy-mode 1)
+  (counsel-mode 1)
+  (setq ivy-use-virtual-buffers t)
+  (global-set-key [?\s-s] 'swiper)
+  (setq ivy-count-format "(%d/%d) ")
+  (global-set-key [?\s-f] 'counsel-find-file)
+  (global-set-key [?\M-x] 'counsel-M-x))
 (with-eval-after-load 'ivy
   (setq ivy-re-builders-alist
 	'((t . ivy--regex-fuzzy)
-	  (swiper . ivy--regex-plus))))
+	  (swiper . ivy--regex-ignore-order))))
 (defun kill-from-recentf (buf)
   "remove the buffer from the recentf list"
   (interactive)
@@ -553,3 +564,5 @@ Leave point after open-quotation."
 (setq inferior-lisp-program "/usr/local/bin/sbcl")
 (with-eval-after-load "slime"
   (define-key slime-mode-map [?\C-x ?\C-e] 'slime-eval-last-expression))
+
+(load-file "~/.emacs.d/my_packages/music/music.el")

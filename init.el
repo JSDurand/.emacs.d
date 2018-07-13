@@ -1,4 +1,5 @@
 (require 'package)
+(require 'cl-lib)
 
 (setq package-enable-at-startup nil)
 (setq package-archives '(("org"       . "http://orgmode.org/elpa/")
@@ -49,7 +50,7 @@
       "* day %T %?"))))
  '(package-selected-packages
    (quote
-    (slime lispy org-bullets pacmacs rainbow-mode magit dired-details company-flx counsel multiple-cursors tex auctex yasnippet wrap-region company-math company paredit expand-region iy-go-to-char org org-mode use-package)))
+    (htmlize slime lispy org-bullets pacmacs rainbow-mode magit dired-details company-flx counsel multiple-cursors tex auctex yasnippet wrap-region company-math company paredit expand-region iy-go-to-char org org-mode use-package)))
  '(wrap-region-global-mode t nil (wrap-region)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -62,3 +63,4 @@
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
+(put 'scroll-left 'disabled nil)

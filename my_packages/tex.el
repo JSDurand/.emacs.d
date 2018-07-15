@@ -81,7 +81,11 @@
        '("pm" "\\pmod{}")
        '("A" "\\forall")
        '("i" "\\in")
-       '("I" "\\infty")))
+       '("I" "\\infty")
+       '("[" "\\subseteq")
+       '("]" "\\supseteq")
+       '("(" "\\supset")
+       '(")" "\\supset")))
 
 (defun setup-abbrevs ()
   "My function to replace auctex math symbol expansion"
@@ -127,7 +131,10 @@
 		 (setq temp (search-forward-regexp "^\\\\def" nil t))
 		 (when temp
 		   (message "Macro inserted.")
-		   (forward-paragraph)
+		   (re-search-forward "
+
+" nil t)
+		   (forward-line -1)
 		   (insert (format "\\def\\%s{%s}\n" name body))))
 	       (if (not temp)
 		   (save-excursion (message "No defs found, insert in the above paragragh.")

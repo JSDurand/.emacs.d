@@ -1,3 +1,4 @@
+#+TITLE: Durand's Emacs
 * Taken from internet 
 
 #+BEGIN_SRC emacs-lisp
@@ -236,7 +237,7 @@
 			     (join-line -1)))
   (global-set-key [?\M-&] 'query-replace-regexp)
   (defun open-line-below ()
-    "C-o in vim"
+    "o in vim"
     (interactive)
     (progn
       (end-of-line)
@@ -254,7 +255,6 @@
   (global-set-key [?\M-\s-ê] 'eval-rep)
   (add-hook 'lisp-mode-hook 'show-paren-mode)
   (add-hook 'emacs-lisp-mode-hook 'show-paren-mode)
-  ;; (add-hook 'clojure-mode-hook 'show-paren-mode)
   (add-hook 'lisp-interaction-mode-hook 'show-paren-mode)
   (global-set-key [?\C-c ?v] 'view-mode)
   (add-hook 'doc-view-mode-hook 'auto-revert-mode)
@@ -306,8 +306,11 @@
 ** expand-region
 
    #+BEGIN_SRC emacs-lisp
-  (global-set-key (kbd "C-$") 'er/expand-region)
-  (pending-delete-mode t)
+     (use-package expand-region
+       :ensure t
+       :config
+       (global-set-key (kbd "C-$") 'er/expand-region)
+       (pending-delete-mode t))
    #+END_SRC
 
 ** company mode
@@ -352,21 +355,25 @@
 ** YASnippet
 
 #+BEGIN_SRC emacs-lisp
-  (require 'yasnippet)
-  (define-key yas-minor-mode-map (kbd "C-c y") #'yas-expand)
-  (setq yas-snippet-dirs '("~/.emacs.d/my_snippets"))
-  (yas-global-mode t)
+  (use-package yasnippet
+    :ensure t
+    :config
+    (define-key yas-minor-mode-map (kbd "C-c y") #'yas-expand)
+    (setq yas-snippet-dirs '("~/.emacs.d/my_snippets"))
+    (yas-global-mode t))
 #+END_SRC
 
 ** multiple-cursors
    #+BEGIN_SRC emacs-lisp
-     (global-set-key (kbd "C-<") 'mc/mark-next-like-this)
-     (global-set-key (kbd "M-<") 'mc/mark-previous-like-this)
-     (global-set-key (kbd "C-c M-<") 'mc/mark-all-like-this)
-     (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+     (use-package multiple-cursors :ensure t
+       :config
+       (global-set-key (kbd "C-<") 'mc/mark-next-like-this)
+       (global-set-key (kbd "M-<") 'mc/mark-previous-like-this)
+       (global-set-key (kbd "C-c M-<") 'mc/mark-all-like-this)
+       (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines))
    #+END_SRC
 
-** My Macros
+** My Keyboard Macros
    #+BEGIN_SRC emacs-lisp
      (fset 'ud
 	[?\C-c ?g ?\C-r ?t ?b ?l ?f ?m return ?\C-c ?\C-c ?\C-r ?t ?b ?l ?f ?m return ?\C-c ?\C-c ?\C-r ?s ?u ?m return tab ?\C-$ ?\M-w ?\C-c ?\C-p ?\C-c ?\C-x ?P ?t ?o ?t ?a ?l ?: ?  ?\C-y ?\C-\M-j])
@@ -526,23 +533,23 @@
 ** Archive
    Just in case I need to do stuff with ivy, this is a basic toy template to interact with it.
    #+BEGIN_SRC emacs-lisp
-     (defun test ()
-       "just to test"
-       (interactive)
-       (ivy-read "test" '(("First option" "first text" "option 1")
-			  ("Second option" "second text") ("third" "third text" "option 2")
-			  ("and fourth option" "fourth text" "fourth option"))
-		 :action '(1
-			   ("o" (lambda (x)
-				  (interactive)
-				  (with-ivy-window
-				    (insert (format "%s" (elt x 1)))))
-			    "hey")
-			   ("p" (lambda (x)
-				  (interactive)
-				  (with-ivy-window
-				    (insert (format "%s" (elt x 2)))))
-			    "haaaa"))))
+     ;; (defun test ()
+     ;;   "just to test"
+     ;;   (interactive)
+     ;;   (ivy-read "test" '(("First option" "first text" "option 1")
+     ;; 		     ("Second option" "second text") ("third" "third text" "option 2")
+     ;; 		     ("and fourth option" "fourth text" "fourth option"))
+     ;; 	    :action '(1
+     ;; 		      ("o" (lambda (x)
+     ;; 			     (interactive)
+     ;; 			     (with-ivy-window
+     ;; 			       (insert (format "%s" (elt x 1)))))
+     ;; 		       "hey")
+     ;; 		      ("p" (lambda (x)
+     ;; 			     (interactive)
+     ;; 			     (with-ivy-window
+     ;; 			       (insert (format "%s" (elt x 2)))))
+     ;; 		       "haaaa"))))
    #+END_SRC
 ** magit
    #+BEGIN_SRC emacs-lisp

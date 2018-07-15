@@ -50,7 +50,7 @@
       "* day %T %?"))))
  '(package-selected-packages
    (quote
-    (htmlize slime lispy org-bullets pacmacs rainbow-mode magit dired-details company-flx counsel multiple-cursors tex auctex yasnippet wrap-region company-math company paredit expand-region iy-go-to-char org org-mode use-package)))
+    (ox-reveal htmlize slime lispy org-bullets pacmacs rainbow-mode magit dired-details company-flx counsel multiple-cursors tex auctex yasnippet wrap-region company-math company paredit expand-region iy-go-to-char org org-mode use-package)))
  '(wrap-region-global-mode t nil (wrap-region)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.

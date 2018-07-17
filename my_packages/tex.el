@@ -3,22 +3,6 @@
   (interactive)
   (call-process "/bin/bash" nil nil nil "-c" (format "xetex %s" (shell-quote-argument buffer-file-name))))
 
-;;  (use-package auctex
-;;    :defer t
-;;    :ensure t
-;;    :config
-;;    (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
-;;    (add-hook 'TeX-mode-hook 'LaTeX-math-mode)
-;;    (customize-set-variable 'LaTeX-math-abbrev-prefix (kbd "£"))
-;;    (add-hook 'TeX-mode-hook '(lambda ()
-;;				(define-key TeX-mode-map [?\§] '(lambda () "remap to type escape key" (interactive) (insert "\\")))
-;;				(define-key TeX-mode-map [f9] 'tex)
-;;				(define-key TeX-mode-map [?\)] 'end-exit-paren)
-;;				(define-key TeX-mode-map [?\(] 'open-paren)
-;;				(define-key TeX-mode-map [?\C-c ?d] 'insert-def)
-;;				(define-key TeX-mode-map [?\C-c ?o] 'one-def)
-;;				(define-key TeX-mode-map [?\C-c ?t] 'two-def)
-;;				(define-key TeX-mode-map [?\C-c ?r] 'read-tex-complete))))
 (with-eval-after-load "tex-mode"
   (define-key plain-tex-mode-map [?\§] '(lambda () "remap to type escape key" (interactive) (insert "\\")))
   (define-key plain-tex-mode-map [f9] 'tex)
@@ -32,8 +16,10 @@
   (define-key plain-tex-mode-map [?\C-c ?\C-o] 'make-blank-space)
   (define-key plain-tex-mode-map [?\C-c ?\C-\S-o] '(lambda () (interactive) (make-blank-space 4)))
   (define-key plain-tex-mode-map [?\M-'] 'abbrev-prefix-mark)
-  (define-key plain-tex-mode-map [?ù] 'setup-abbrevs)
-  (add-hook 'tex-mode-hook '(lambda () (abbrev-mode 1))))
+  (define-key plain-tex-mode-map [?ù] 'setup-abbrevs))
+
+;; I will take a two-character approach, but some of them are still
+;; one-character expansion.
 
 (setq abbrev-pairs
       (list
@@ -75,8 +61,8 @@
        '("vf" "\\varphi")
        '("<" "\\leq")
        '(">" "\\geq")
-       '("=" "\\equiv")
-       '("==" "\\cong")
+       '("==" "\\equiv")
+       '("~=" "\\cong")
        '("." "\\cdot")
        '("pm" "\\pmod{}")
        '("A" "\\forall")
@@ -84,8 +70,11 @@
        '("I" "\\infty")
        '("[" "\\subseteq")
        '("]" "\\supseteq")
-       '("(" "\\supset")
+       '("(" "\\subset")
        '(")" "\\supset")))
+
+;; This function needs to be modified; add some protection, and
+;; distinguishes one and two character expansions.
 
 (defun setup-abbrevs ()
   "My function to replace auctex math symbol expansion"
@@ -194,7 +183,7 @@
       res)))
 
 (defun find-macro-name (x)
-  "find the name of a tex macro"
+  "Find the name of a tex macro"
   (let* ((ind (string-match "{" x))
 	 (content (substring x 0 ind)))
     (cond
@@ -213,10 +202,24 @@
 	    :action '(1
 		      ("o" (lambda (x)
 			     (insert (format "%s" (find-macro-name x))))
-		       "Default action: insert macro name.")
-		      ("m" (lambda (x)
-			     (message (format "%s" (find-macro-name x))))
-		       "Message the macro name instead of inserting it."))))
+		       "Default action: insert macro name."))))
+
+;;  (use-package auctex
+;;    :defer t
+;;    :ensure t
+;;    :config
+;;    (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
+;;    (add-hook 'TeX-mode-hook 'LaTeX-math-mode)
+;;    (customize-set-variable 'LaTeX-math-abbrev-prefix (kbd "£"))
+;;    (add-hook 'TeX-mode-hook '(lambda ()
+;;				(define-key TeX-mode-map [?\§] '(lambda () "remap to type escape key" (interactive) (insert "\\")))
+;;				(define-key TeX-mode-map [f9] 'tex)
+;;				(define-key TeX-mode-map [?\)] 'end-exit-paren)
+;;				(define-key TeX-mode-map [?\(] 'open-paren)
+;;				(define-key TeX-mode-map [?\C-c ?d] 'insert-def)
+;;				(define-key TeX-mode-map [?\C-c ?o] 'one-def)
+;;				(define-key TeX-mode-map [?\C-c ?t] 'two-def)
+;;				(define-key TeX-mode-map [?\C-c ?r] 'read-tex-complete))))
 
 (defun make-blank-space (arg)
   "To make enough space to put something in. Default to up, with arg down"

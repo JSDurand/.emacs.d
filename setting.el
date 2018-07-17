@@ -31,24 +31,28 @@
 (global-set-key "\M-\"" 'insert-quotes)
 ;; (global-set-key (kbd "C-'") 'insert-backquote)
 
+;;;###autoload
 (defun insert-quotations (&optional arg)
   "Enclose following ARG sexps in quotation marks.
 Leave point after open-paren."
   (interactive "*P")
   (insert-pair arg ?\' ?\'))
 
+;;;###autoload
 (defun insert-quotes (&optional arg)
   "Enclose following ARG sexps in quotes.
 Leave point after open-quote."
   (interactive "*P")
   (insert-pair arg ?\" ?\"))
 
+;;;###autoload
 (defun insert-backquote (&optional arg)
   "Enclose following ARG sexps in quotations with backquote.
 Leave point after open-quotation."
   (interactive "*P")
   (insert-pair arg ?\` ?\'))
 
+;;;###autoload
 (defun copy-line (arg)
   "Copy line accoring to ARG"
   (interactive "p")
@@ -60,11 +64,13 @@ Leave point after open-quotation."
 
 (global-set-key [?\M-k] 'copy-line)
 
+;;;###autoload
 (defun indent-buffer ()
   "Indent the currently visited buffer."
   (interactive)
   (indent-region (point-min) (point-max)))
 
+;;;###autoload
 (defun indent-region-or-buffer ()
   "Indent a region if selected, otherwise the whole buffer."
   (interactive)
@@ -78,6 +84,7 @@ Leave point after open-quotation."
 	(message "Indented buffer.")))))
 (global-set-key [?\C-c ?/] 'indent-region-or-buffer)
 
+;;;###autoload
 (defun backward-kill-line (arg)
   "Kill ARG lines backward"
   (interactive "p")
@@ -104,22 +111,35 @@ Leave point after open-quotation."
   (setq-local face-remapping-alist '((default (:height 1.2) variable-pitch))))
 
 (global-set-key [?\s-w] 'delete-other-windows)
-(defun scroll-half-page-down ()
-  "scroll down half the page"
-  (interactive)
-  (scroll-down (/ (window-body-height) 2)))
 
-(defun scroll-half-page-up ()
-  "scroll up half the page"
-  (interactive)
-  (scroll-up (/ (window-body-height) 2)))
+;; (defun scroll-half-page-down ()
+;;   "scroll down half the page"
+;;   (interactive)
+;;   (scroll-down (/ (window-body-height) 2)))
 
-(use-package org :ensure t)
-(setq org-todo-keywords '((sequence "TODO" "START" "WORKING" "HARD-WORKING" "ALMOST" "|" "DONE")))
-(global-set-key "\C-cl" 'org-store-link)
-(global-set-key "\C-cc" 'org-capture)
-(global-set-key "\C-ca" 'org-agenda)
-(global-set-key "\C-cb" 'org-iswitchb)
+;; (defun scroll-half-page-up ()
+;;   "scroll up half the page"
+;;   (interactive)
+;;   (scroll-up (/ (window-body-height) 2)))
+
+(use-package org
+  :ensure t
+  :defer t
+  :config
+  (setq org-todo-keywords '((sequence "TODO" "START" "WORKING" "HARD-WORKING" "ALMOST" "|" "DONE")))
+  (global-set-key "\C-cl" 'org-store-link)
+  (global-set-key "\C-cc" 'org-capture)
+  (global-set-key "\C-ca" 'org-agenda)
+  (global-set-key "\C-cb" 'org-iswitchb)
+  (add-hook 'org-mode-hook '(lambda ()
+			      (define-key org-mode-map [?\ù] 'org-advance)
+			      (define-key org-mode-map [?\ç] 'org-retreat)))
+  (define-key org-mode-map [f8] 'org-calc-account)
+  (advice-add 'org-edit-special :after '(lambda (orig-fun) (delete-other-windows)))
+  (set-face-attribute 'org-block nil :background "black" :foreground "orange"))
+
+
+;;;###autoload
 (defun org-advance (x)
   (interactive "P")
   (when (buffer-narrowed-p)
@@ -130,6 +150,7 @@ Leave point after open-quotation."
       (org-forward-heading-same-level 1)))
   (org-narrow-to-subtree))
 
+;;;###autoload
 (defun org-retreat (x)
   (interactive "P")
   (when (buffer-narrowed-p)
@@ -140,22 +161,20 @@ Leave point after open-quotation."
       (org-backward-heading-same-level 1)))
   (org-narrow-to-subtree))
 
-(add-hook 'org-mode-hook '(lambda ()
-			   (define-key org-mode-map [?\ù] 'org-advance)
-			   (define-key org-mode-map [?\ç] 'org-retreat)))
-
+;;;###autoload
 (defun org-get-account-num ()
   "count how many days have been tagged 'account'"
   (interactive)
   (length (org-map-entries t "account")))
 
+;;;###autoload
 (defun org-get-account-total ()
   "get the total value of the accuont values"
   (interactive)
   (apply '+ (mapcar 'string-to-number
 		    (org-map-entries (lambda ()
 				       (org-entry-get nil "TOTAL")) "account"))))
-
+;;;###autoload
 (defun org-calc-account ()
   "sum up my accounts entries, one can limit the entries to sum by the tag 'account'"
   (interactive)
@@ -168,16 +187,12 @@ Leave point after open-quotation."
 	      (number-to-string total)
 	      " with average "
 	      (number-to-string ave)))))
-(define-key org-mode-map [f8] 'org-calc-account)
-
-(advice-add 'org-edit-special :after '(lambda (orig-fun) (delete-other-windows)))
 
 ;; just in case I need this
-(defun org-retrieve-value ()
-  "retrieve value from property drawer"
-  (org-element-map (org-element-parse-buffer) 'property-drawer (lambda (hl)
-								 (nth 3 (nth 1 (assoc 'node-property hl))))))
-(set-face-attribute 'org-block nil :background "black" :foreground "orange")
+;; (defun org-retrieve-value ()
+;;   "retrieve value from property drawer"
+;;   (org-element-map (org-element-parse-buffer) 'property-drawer (lambda (hl)
+;; 								 (nth 3 (nth 1 (assoc 'node-property hl))))))
 
 (toggle-truncate-lines -1)
 (global-set-key (kbd "C-c h") 'beginning-of-buffer)
@@ -205,8 +220,9 @@ Leave point after open-quotation."
 			   (interactive)
 			   (join-line -1)))
 (global-set-key [?\M-&] 'query-replace-regexp)
+;;;###autoload
 (defun open-line-below ()
-  "C-o in vim"
+  "o in vim"
   (interactive)
   (progn
     (end-of-line)
@@ -216,6 +232,7 @@ Leave point after open-quotation."
 (global-set-key [?\C-o] 'open-line-below)
 (add-hook 'dired-mode-hook 'dired-hide-details-mode)
 (setq make-backup-files nil)
+;;;###autoload
 (defun eval-rep ()
   "my eval replace"
   (interactive)
@@ -224,13 +241,13 @@ Leave point after open-quotation."
 (global-set-key [?\M-\s-ê] 'eval-rep)
 (add-hook 'lisp-mode-hook 'show-paren-mode)
 (add-hook 'emacs-lisp-mode-hook 'show-paren-mode)
-;; (add-hook 'clojure-mode-hook 'show-paren-mode)
 (add-hook 'lisp-interaction-mode-hook 'show-paren-mode)
 (global-set-key [?\C-c ?v] 'view-mode)
 (add-hook 'doc-view-mode-hook 'auto-revert-mode)
 (global-set-key [?\C-x ?r ?s] 'bookmark-save)
 (global-set-key [?\M-Z] 'zap-up-to-char)
 (setq flyspell-issue-message-flag nil)
+;;;###autoload
 (defun ask-before-quit-advice (orig-func &rest args)
   (let ((answer (read-char-choice "Do you really want to quit?" '(?y ?n))))
     (if (char-equal answer ?y)
@@ -240,18 +257,22 @@ Leave point after open-quotation."
 (advice-add 'save-buffers-kill-terminal :around 'ask-before-quit-advice)
 (setq initial-frame-alist '((width . 118)))
 (global-set-key [?\C-*] 'clean-up-buffers)
+;;;###autoload
 (defun clean-up-buffers ()
   "Clean up some buffers that I oft do not need to keep around"
   (interactive)
   (cl-loop for buffer being the buffers
 	   do (and (is-not-needed-buffer buffer)
-		   (kill-buffer (buffer-name buffer)))))
+		   (kill-buffer (buffer-name buffer))))
+  (setq recentf-list '()))
 
+;;;###autoload
 (defun is-not-needed-buffer (buf)
   "Match some buffers I do not want to keep around"
   (let ((name (buffer-name buf)))
     (or (and (= ?* (aref name 0))
-	     (not (string-match "^\\*scratch\\*$" name)))
+	     (not (string-match "^\\*scratch\\*$" name))
+	     (not (string-match "^\\*Messages\\*$" name)))
 	(string-match "^magit" name))))
 
 ;; (load-theme 'leuven)
@@ -260,15 +281,23 @@ Leave point after open-quotation."
 ;; (load-theme 'default-black)
 ;; (load-theme 'my_theme t)
 
-(use-package iy-go-to-char :ensure t
+(use-package iy-go-to-char
+  :ensure t
+  :defer t
   :config
   (global-set-key "\M-m" 'iy-go-to-char)
   (global-set-key "\M-p" 'iy-go-to-char-backward))
 
-(global-set-key (kbd "C-$") 'er/expand-region)
-(pending-delete-mode t)
+(use-package expand-region
+  :ensure t
+  :defer t
+  :config
+  (global-set-key (kbd "C-$") 'er/expand-region)
+  (pending-delete-mode t))
 
-(use-package company :ensure t
+(use-package company
+  :ensure t
+  :defer t
   :config
   (global-company-mode)
   (global-set-key (kbd "C-x <") 'company-complete)
@@ -276,7 +305,9 @@ Leave point after open-quotation."
 
 (org-babel-load-file "/Users/durand/.emacs.d/my_packages/tex.org")
 
-(use-package wrap-region :ensure t
+(use-package wrap-region
+  :ensure t
+  :defer t
   :config
   (wrap-region-global-mode t)
   (wrap-region-add-wrapper "$" "$"))
@@ -287,15 +318,20 @@ Leave point after open-quotation."
 ;; (global-set-key (kbd "C-c (") 'paredit-backward-barf-sexp)
 ;; (global-set-key [?\C-\(] 'paredit-mode)
 
-(require 'yasnippet)
-(define-key yas-minor-mode-map (kbd "C-c y") #'yas-expand)
-(setq yas-snippet-dirs '("~/.emacs.d/my_snippets"))
-(yas-global-mode t)
+(use-package yasnippet
+  :ensure t
+  :defer t
+  :config
+  (define-key yas-minor-mode-map (kbd "C-c y") #'yas-expand)
+  (setq yas-snippet-dirs '("~/.emacs.d/my_snippets"))
+  (yas-global-mode t))
 
-(global-set-key (kbd "C-<") 'mc/mark-next-like-this)
-(global-set-key (kbd "M-<") 'mc/mark-previous-like-this)
-(global-set-key (kbd "C-c M-<") 'mc/mark-all-like-this)
-(global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+;; (use-package multiple-cursors :ensure t
+;;   :config
+;;   (global-set-key (kbd "C-<") 'mc/mark-next-like-this)
+;;   (global-set-key (kbd "M-<") 'mc/mark-previous-like-this)
+;;   (global-set-key (kbd "C-c M-<") 'mc/mark-all-like-this)
+;;   (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines))
 
 (fset 'ud
    [?\C-c ?g ?\C-r ?t ?b ?l ?f ?m return ?\C-c ?\C-c ?\C-r ?t ?b ?l ?f ?m return ?\C-c ?\C-c ?\C-r ?s ?u ?m return tab ?\C-$ ?\M-w ?\C-c ?\C-p ?\C-c ?\C-x ?P ?t ?o ?t ?a ?l ?: ?  ?\C-y ?\C-\M-j])
@@ -304,6 +340,7 @@ Leave point after open-quotation."
 
 (use-package counsel
   :ensure t
+  :defer 1
   :config
   (ivy-mode 1)
   (counsel-mode 1)
@@ -313,24 +350,28 @@ Leave point after open-quotation."
   (global-set-key [?\s-f] 'counsel-find-file)
   (global-set-key [?\M-x] 'counsel-M-x)
   (setq ivy-use-selectable-prompt t))
-(with-eval-after-load 'ivy
+
+(use-package ivy
+  :ensure t
+  :defer 1
+  :config
   (setq ivy-re-builders-alist
 	'((swiper . ivy--regex-ignore-order)
-	  (t . ivy--regex-fuzzy))))
+	  (t . ivy--regex-fuzzy)))
+  (ivy-set-actions
+   'ivy-switch-buffer
+   '(("k"
+      (lambda (x)
+	(kill-from-recentf x)
+	(ivy--reset-state ivy-last))
+      "kill"))))
+;;;###autoload
 (defun kill-from-recentf (buf)
   "remove the buffer from the recentf list"
   (interactive)
   (if (get-buffer buf)
       (kill-buffer buf)
     (setq recentf-list (delete (cdr (assoc buf ivy--virtual-buffers)) recentf-list))))
-
-(ivy-set-actions
- 'ivy-switch-buffer
- '(("k"
-    (lambda (x)
-      (kill-from-recentf x)
-      (ivy--reset-state ivy-last))
-    "kill")))
 
 (column-number-mode 1)
 (set-face-attribute 'mode-line-buffer-id nil :background "deep sky blue"
@@ -425,37 +466,53 @@ Leave point after open-quotation."
 ;; 	(setq temp cur)))  
 ;;     (backward-delete-char (- cur temp))))
 
-(use-package lispy :ensure t
+(use-package lispy
+  :ensure t
+  :defer 5
   :config
   (add-hook 'emacs-lisp-mode-hook 'lispy-mode)
   (add-hook 'lisp-mode-hook 'lispy-mode)
   (add-hook 'lisp-interaction-mode-hook 'lispy-mode))
 
-(defun test ()
-  "just to test"
-  (interactive)
-  (ivy-read "test" '(("First option" "first text" "option 1")
-		     ("Second option" "second text") ("third" "third text" "option 2")
-		     ("and fourth option" "fourth text" "fourth option"))
-	    :action '(1
-		      ("o" (lambda (x)
-			     (interactive)
-			     (with-ivy-window
-			       (insert (format "%s" (elt x 1)))))
-		       "hey")
-		      ("p" (lambda (x)
-			     (interactive)
-			     (with-ivy-window
-			       (insert (format "%s" (elt x 2)))))
-		       "haaaa"))))
+;; (defun test ()
+;;   "just to test"
+;;   (interactive)
+;;   (ivy-read "test" '(("First option" "first text" "option 1")
+;; 		     ("Second option" "second text") ("third" "third text" "option 2")
+;; 		     ("and fourth option" "fourth text" "fourth option"))
+;; 	    :action '(1
+;; 		      ("o" (lambda (x)
+;; 			     (interactive)
+;; 			     (with-ivy-window
+;; 			       (insert (format "%s" (elt x 1)))))
+;; 		       "hey")
+;; 		      ("p" (lambda (x)
+;; 			     (interactive)
+;; 			     (with-ivy-window
+;; 			       (insert (format "%s" (elt x 2)))))
+;; 		       "haaaa"))))
 
-(use-package magit :ensure t
+(use-package magit
+  :ensure t
+  :defer 10
   :config
   (global-set-key [?\C-x ?g] 'magit-status))
 
 (setq inferior-lisp-program "/usr/local/bin/sbcl")
-(use-package slime :ensure t 
+(use-package slime
+  :ensure t 
+  :defer 10
   :config
   (define-key slime-mode-map [?\C-x ?\C-e] 'slime-eval-last-expression))
 
 (load-file "~/.emacs.d/my_packages/music/music.el")
+
+(use-package iedit :ensure t
+  :defer 10
+  :config
+  ;; bind to "C-;", the number is produced by the function kbd
+  (global-set-key [67108923] 'iedit-mode))
+
+(use-package esup
+  :ensure t
+  :defer t)

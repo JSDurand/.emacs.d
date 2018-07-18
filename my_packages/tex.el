@@ -1,7 +1,11 @@
 (defun tex ()
   "my own command to compile tex"
   (interactive)
-  (call-process "/bin/bash" nil nil nil "-c" (format "xetex %s" (shell-quote-argument buffer-file-name))))
+  (call-process "/bin/bash" nil nil nil "-c" (format "xetex %s" (shell-quote-argument buffer-file-name)))
+  (let ((pdf-name (concat (file-name-base) ".pdf")))
+    (if (get-buffer pdf-name)
+	(with-current-buffer pdf-name (revert-buffer))
+      (find-file pdf-name))))
 
 (with-eval-after-load "tex-mode"
   (define-key plain-tex-mode-map [?\§] '(lambda () "remap to type escape key" (interactive) (insert "\\")))

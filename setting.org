@@ -32,6 +32,7 @@
   (menu-bar-mode -1)
   (setq mac-option-key-is-meta t)
   (setq mac-right-option-modifier nil)
+  (setq ns-function-modifier 'hyper)
   (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
   (global-set-key "\M-'" 'insert-quotations)
   (global-set-key "\M-\"" 'insert-quotes)
@@ -118,18 +119,17 @@
   ;;;(set-face-attribute 'default (selected-frame) :height 120)
   ;;;(set-face-attribute 'mode-line nil :height 200)
   (set-default-font "Menlo 20")
-
   (defun my-minibuffer-setup ()
     (set (make-local-variable 'face-remapping-alist)
-	 '((default :height 1.1))))
+	 '((default :height 1.1)))
+    (with-current-buffer (get-buffer " *Echo Area 0*")
+      (setq-local face-remapping-alist '((default (:height 1.2) variable-pitch))))
+
+    (with-current-buffer (get-buffer " *Echo Area 1*")
+      (setq-local face-remapping-alist '((default (:height 1.2) variable-pitch)))))
 
   (add-hook 'minibuffer-setup-hook 'my-minibuffer-setup)
 
-  (with-current-buffer (get-buffer " *Echo Area 0*") 
-    (setq-local face-remapping-alist '((default (:height 1.2) variable-pitch))))
-
-  (with-current-buffer (get-buffer " *Echo Area 1*")
-    (setq-local face-remapping-alist '((default (:height 1.2) variable-pitch))))
 #+END_SRC
 
 ** only window
@@ -276,19 +276,25 @@
   (add-hook 'emacs-lisp-mode-hook 'show-paren-mode)
   (add-hook 'lisp-interaction-mode-hook 'show-paren-mode)
   (global-set-key [?\C-c ?v] 'view-mode)
-  (add-hook 'doc-view-mode-hook 'auto-revert-mode)
+  ;; (add-hook 'doc-view-mode-hook 'auto-revert-mode)
   (global-set-key [?\C-x ?r ?s] 'bookmark-save)
   (global-set-key [?\M-Z] 'zap-up-to-char)
   (setq flyspell-issue-message-flag nil)
   ;;;###autoload
   (defun ask-before-quit-advice (orig-func &rest args)
-    (let ((answer (read-char-choice "Do you really want to quit?" '(?y ?n))))
-      (if (char-equal answer ?y)
-	  (apply orig-func args)
-	(message "You're welcomed!"))))
+    (if (not (frame-parameter nil 'client))
+	(let ((answer (read-char-choice "Do you really want to quit?" '(?y ?n))))
+	  (if (char-equal answer ?y)
+	      (apply orig-func args)
+	    (message "You're welcomed!")))
+      (apply orig-func args)))
 
   (advice-add 'save-buffers-kill-terminal :around 'ask-before-quit-advice)
   (setq initial-frame-alist '((width . 118)))
+  (set-frame-width nil 118)
+  (add-to-list 'default-frame-alist '(width . 118))
+  (add-to-list 'default-frame-alist '(font . "Menlo 20"))
+  (setq revert-without-query '(".*"))
   (global-set-key [?\C-*] 'clean-up-buffers)
   ;;;###autoload
   (defun clean-up-buffers ()
@@ -323,7 +329,7 @@
 #+BEGIN_SRC emacs-lisp
   (use-package iy-go-to-char
     :ensure t
-    :defer t
+    :defer 10
     :config
     (global-set-key "\M-m" 'iy-go-to-char)
     (global-set-key "\M-p" 'iy-go-to-char-backward))
@@ -334,9 +340,10 @@
    #+BEGIN_SRC emacs-lisp
      (use-package expand-region
        :ensure t
+       :bind ([67108900] . 'er/expand-region)
        :defer t
        :config
-       (global-set-key (kbd "C-$") 'er/expand-region)
+       ;; (global-set-key (kbd "C-$") 'er/expand-region)
        (pending-delete-mode t))
    #+END_SRC
 
@@ -345,7 +352,7 @@
 #+BEGIN_SRC emacs-lisp
   (use-package company
     :ensure t
-    :defer t
+    :defer 10
     :config
     (global-company-mode)
     (global-set-key (kbd "C-x <") 'company-complete)
@@ -368,7 +375,7 @@
 #+BEGIN_SRC emacs-lisp
   (use-package wrap-region
     :ensure t
-    :defer t
+    :defer 10
     :config
     (wrap-region-global-mode t)
     (wrap-region-add-wrapper "$" "$"))
@@ -388,7 +395,7 @@
 #+BEGIN_SRC emacs-lisp
   (use-package yasnippet
     :ensure t
-    :defer t
+    :defer 10
     :config
     (define-key yas-minor-mode-map (kbd "C-c y") #'yas-expand)
     (setq yas-snippet-dirs '("~/.emacs.d/my_snippets"))
@@ -474,16 +481,20 @@
 		   (propertized-buffer-identification " %b "))
 
      (defun my-mode-line-modified ()
-       (concat
-	(if (and (buffer-modified-p)
-		 (not (string-prefix-p "*" (buffer-name))))
-	    "US "
-	  (if (string-prefix-p "*" (buffer-name))
-	      "NO "
-	    " "))
-	(if buffer-read-only
-	    "RO "
-	  " ")))
+       (propertize
+	(concat
+	 (if (buffer-modified-p)
+	     "M "
+	   " ")
+	 (if (string-prefix-p "*" (buffer-name))
+	     "N "
+	   " ")
+	 (if buffer-read-only
+	     "R "
+	   " "))
+	'help-echo "M: modified 
+N: probably not a file
+R: read-only"))
 
      (setq-default mode-line-format
 		   '("%e"
@@ -600,17 +611,17 @@
    #+END_SRC
 ** slime
    #+BEGIN_SRC emacs-lisp
-     (setq inferior-lisp-program "/usr/local/bin/sbcl")
-     (use-package slime
-       :ensure t 
-       :defer 10
-       :config
-       (define-key slime-mode-map [?\C-x ?\C-e] 'slime-eval-last-expression))
+     ;; (setq inferior-lisp-program "/usr/local/bin/sbcl")
+     ;; (use-package slime
+     ;;   :ensure t 
+     ;;   :defer 20
+     ;;   :config
+     ;;   (define-key slime-mode-map [?\C-x ?\C-e] 'slime-eval-last-expression))
    #+END_SRC
 ** music
    My own music plugin.
    #+BEGIN_SRC emacs-lisp
-     (load-file "~/.emacs.d/my_packages/music/music.el")
+     ;; (load-file "~/.emacs.d/my_packages/music/music.el")
    #+END_SRC
 ** iedit-mode
    I think this can totally replace the use of multiple cursors that I
@@ -625,7 +636,22 @@
 ** esup
    start-up profiling
    #+BEGIN_SRC emacs-lisp
-     (use-package esup
+     ;; (use-package esup
+     ;;   :ensure t
+     ;;   :defer t)
+   #+END_SRC
+** pdf-tools
+   I finally made up the mind to install this package.
+   #+BEGIN_SRC emacs-lisp
+     (use-package pdf-tools
        :ensure t
-       :defer t)
+       :defer 15
+       :pin manual ;; manually update
+       :config
+       ;; initialise
+       (pdf-tools-install)
+       ;; open pdfs scaled to fit page
+       (setq-default pdf-view-display-size 'fit-width)
+       ;; use normal isearch
+       (define-key pdf-view-mode-map (kbd "s-s") 'isearch-forward))
    #+END_SRC

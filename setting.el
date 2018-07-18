@@ -97,18 +97,16 @@ Leave point after open-quotation."
 ;;;(set-face-attribute 'default (selected-frame) :height 120)
 ;;;(set-face-attribute 'mode-line nil :height 200)
 (set-default-font "Menlo 20")
-
 (defun my-minibuffer-setup ()
   (set (make-local-variable 'face-remapping-alist)
-       '((default :height 1.1))))
+       '((default :height 1.1)))
+  (with-current-buffer (get-buffer " *Echo Area 0*")
+    (setq-local face-remapping-alist '((default (:height 1.2) variable-pitch))))
+
+  (with-current-buffer (get-buffer " *Echo Area 1*")
+    (setq-local face-remapping-alist '((default (:height 1.2) variable-pitch)))))
 
 (add-hook 'minibuffer-setup-hook 'my-minibuffer-setup)
-
-(with-current-buffer (get-buffer " *Echo Area 0*") 
-  (setq-local face-remapping-alist '((default (:height 1.2) variable-pitch))))
-
-(with-current-buffer (get-buffer " *Echo Area 1*")
-  (setq-local face-remapping-alist '((default (:height 1.2) variable-pitch))))
 
 (global-set-key [?\s-w] 'delete-other-windows)
 
@@ -243,7 +241,7 @@ Leave point after open-quotation."
 (add-hook 'emacs-lisp-mode-hook 'show-paren-mode)
 (add-hook 'lisp-interaction-mode-hook 'show-paren-mode)
 (global-set-key [?\C-c ?v] 'view-mode)
-(add-hook 'doc-view-mode-hook 'auto-revert-mode)
+;; (add-hook 'doc-view-mode-hook 'auto-revert-mode)
 (global-set-key [?\C-x ?r ?s] 'bookmark-save)
 (global-set-key [?\M-Z] 'zap-up-to-char)
 (setq flyspell-issue-message-flag nil)
@@ -256,6 +254,10 @@ Leave point after open-quotation."
 
 (advice-add 'save-buffers-kill-terminal :around 'ask-before-quit-advice)
 (setq initial-frame-alist '((width . 118)))
+(set-frame-width nil 118)
+(add-to-list 'default-frame-alist '(width . 118))
+(add-to-list 'default-frame-alist '(font . "Menlo 20"))
+(setq revert-without-query '(".*"))
 (global-set-key [?\C-*] 'clean-up-buffers)
 ;;;###autoload
 (defun clean-up-buffers ()
@@ -283,21 +285,22 @@ Leave point after open-quotation."
 
 (use-package iy-go-to-char
   :ensure t
-  :defer t
+  :defer 10
   :config
   (global-set-key "\M-m" 'iy-go-to-char)
   (global-set-key "\M-p" 'iy-go-to-char-backward))
 
 (use-package expand-region
   :ensure t
+  :bind ([67108900] . 'er/expand-region)
   :defer t
   :config
-  (global-set-key (kbd "C-$") 'er/expand-region)
+  ;; (global-set-key (kbd "C-$") 'er/expand-region)
   (pending-delete-mode t))
 
 (use-package company
   :ensure t
-  :defer t
+  :defer 10
   :config
   (global-company-mode)
   (global-set-key (kbd "C-x <") 'company-complete)
@@ -307,7 +310,7 @@ Leave point after open-quotation."
 
 (use-package wrap-region
   :ensure t
-  :defer t
+  :defer 10
   :config
   (wrap-region-global-mode t)
   (wrap-region-add-wrapper "$" "$"))
@@ -320,7 +323,7 @@ Leave point after open-quotation."
 
 (use-package yasnippet
   :ensure t
-  :defer t
+  :defer 10
   :config
   (define-key yas-minor-mode-map (kbd "C-c y") #'yas-expand)
   (setq yas-snippet-dirs '("~/.emacs.d/my_snippets"))
@@ -374,58 +377,62 @@ Leave point after open-quotation."
     (setq recentf-list (delete (cdr (assoc buf ivy--virtual-buffers)) recentf-list))))
 
 (column-number-mode 1)
-(set-face-attribute 'mode-line-buffer-id nil :background "deep sky blue"
-		    :foreground "orange")
-(set-face-attribute 'mode-line-highlight nil :box nil :background "deep sky blue")
-(set-face-attribute 'mode-line-inactive  nil :background "gray" :foreground "black")
+     (set-face-attribute 'mode-line-buffer-id nil :background "deep sky blue"
+			 :foreground "orange")
+     (set-face-attribute 'mode-line-highlight nil :box nil :background "deep sky blue")
+     (set-face-attribute 'mode-line-inactive  nil :background "gray" :foreground "black")
 
-(setq mode-line-position
-      '(;; %p print percent of buffer above top of window, or Top, Bot or All
-	;; (-3 "%p")
-	" "
-	;; %I print the size of the buffer, with kmG etc
-	;; (size-indication-mode ("/" (-4 "%I")))
-	;; " "
-	;; %l print the current line number
-	;; %c print the current column
-	(line-number-mode ("%l" (column-number-mode ":%c")))))
+     (setq mode-line-position
+	   '(;; %p print percent of buffer above top of window, or Top, Bot or All
+	     ;; (-3 "%p")
+	     " "
+	     ;; %I print the size of the buffer, with kmG etc
+	     ;; (size-indication-mode ("/" (-4 "%I")))
+	     ;; " "
+	     ;; %l print the current line number
+	     ;; %c print the current column
+	     (line-number-mode ("%l" (column-number-mode ":%c")))))
 
-(setq-default mode-line-buffer-identification
-	      (propertized-buffer-identification " %b "))
+     (setq-default mode-line-buffer-identification
+		   (propertized-buffer-identification " %b "))
 
-(defun my-mode-line-modified ()
-  (concat
-   (if (and (buffer-modified-p)
-	    (not (string-prefix-p "*" (buffer-name))))
-       "US "
-     (if (string-prefix-p "*" (buffer-name))
-	 "NO "
-       " "))
-   (if buffer-read-only
-       "RO "
-     " ")))
+     (defun my-mode-line-modified ()
+       (propertize
+	(concat
+	 (if (buffer-modified-p)
+	     "M "
+	   " ")
+	 (if (string-prefix-p "*" (buffer-name))
+	     "N "
+	   " ")
+	 (if buffer-read-only
+	     "R "
+	   " "))
+	'help-echo "M: modified 
+N: probably not a file
+R: read-only"))
 
-(setq-default mode-line-format
-	      '("%e"
-		mode-line-front-space
-		;; mode-line-mule-info -- I'm always on utf-8
-		mode-line-client
-		(:eval (my-mode-line-modified))
-		;; mode-line-remote -- no need to indicate this specially
-		;; mode-line-frame-identification -- this is for text-mode emacs only
-		" "
-		mode-line-buffer-identification
-		" "
-		;; mode-line-position
-		;;(vc-mode vc-mode)  -- I use magit
-		;; (flycheck-mode flycheck-mode-line) -- I don't have this
-		" %m " ;; Only major mode
-		mode-line-misc-info
-		mode-line-end-spaces
-		;; mode-line-modes -- I don't want all those minor modes information
-		))
-(set-face-attribute 'mode-line nil
-		    :background "light blue" :foreground "black" :height 1.3)
+     (setq-default mode-line-format
+		   '("%e"
+		     mode-line-front-space
+		     ;; mode-line-mule-info -- I'm always on utf-8
+		     mode-line-client
+		     (:eval (my-mode-line-modified))
+		     ;; mode-line-remote -- no need to indicate this specially
+		     ;; mode-line-frame-identification -- this is for text-mode emacs only
+		     " "
+		     mode-line-buffer-identification
+		     " "
+		     ;; mode-line-position
+		     ;;(vc-mode vc-mode)  -- I use magit
+		     ;; (flycheck-mode flycheck-mode-line) -- I don't have this
+		     " %m " ;; Only major mode
+		     mode-line-misc-info
+		     mode-line-end-spaces
+		     ;; mode-line-modes -- I don't want all those minor modes information
+		     ))
+     (set-face-attribute 'mode-line nil
+			 :background "light blue" :foreground "black" :height 1.3)
 
 ;; (use-package parinfer
 ;;   :ensure t
@@ -498,14 +505,14 @@ Leave point after open-quotation."
   :config
   (global-set-key [?\C-x ?g] 'magit-status))
 
-(setq inferior-lisp-program "/usr/local/bin/sbcl")
-(use-package slime
-  :ensure t 
-  :defer 10
-  :config
-  (define-key slime-mode-map [?\C-x ?\C-e] 'slime-eval-last-expression))
+;; (setq inferior-lisp-program "/usr/local/bin/sbcl")
+;; (use-package slime
+;;   :ensure t 
+;;   :defer 20
+;;   :config
+;;   (define-key slime-mode-map [?\C-x ?\C-e] 'slime-eval-last-expression))
 
-(load-file "~/.emacs.d/my_packages/music/music.el")
+;; (load-file "~/.emacs.d/my_packages/music/music.el")
 
 (use-package iedit :ensure t
   :defer 10
@@ -513,6 +520,18 @@ Leave point after open-quotation."
   ;; bind to "C-;", the number is produced by the function kbd
   (global-set-key [67108923] 'iedit-mode))
 
-(use-package esup
-  :ensure t
-  :defer t)
+;; (use-package esup
+;;   :ensure t
+;;   :defer t)
+
+;     (use-package pdf-tools
+;       :ensure t
+;       :defer 15
+;       :pin manual ;; manually update
+;       :config
+;       ;; initialise
+;       (pdf-tools-install)
+;       ;; open pdfs scaled to fit page
+;       (setq-default pdf-view-display-size 'fit-page)
+;       ;; use normal isearch
+;       (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward))
